@@ -1,0 +1,83 @@
+<!DOCTYPE html>  
+<html>  
+<head>  
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />  
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />  
+<style type="text/css">  
+body, html,#l-map {width: 100%;height: 100%;overflow: hidden;hidden;margin:0;}  
+</style>  
+<script type="text/javascript" src="http://api.map.baidu.com/api?type=quick&ak=E8yAtC3LtBPTC3tpHPeAC41d&v=1.0"></script>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<title>显示地图</title>  
+</head>  
+<body>
+<form id="form">
+    <input id="line" type="text">
+    <input type="submit" value="ok">
+</form>
+<div id="way">
+</div>
+<div id="l-map"></div>  
+</body>>  
+</html>  
+<script type="text/javascript">
+
+$("#form").submit(function(e){
+    e.preventDefault();
+    if (navigator.geolocation)
+    {
+    navigator.geolocation.getCurrentPosition(showPosition);
+    }
+    function showPosition(position)
+    {
+       var map = new BMap.Map("l-map");
+       map.clearOverlays()
+       $.ajax({
+            url:"/bus",
+            data:"lat="+position.coords.latitude+"&lng="+position.coords.longitude+"&line="+$("#line").val(),
+            type:"GET",
+            dataType:"json",
+            success:function(data){
+               map.centerAndZoom(new BMap.Point( position.coords.longitude,position.coords.latitude), 14);
+               var myIcon = new BMap.Icon("http://api.map.baidu.com/mapCard/img/location.gif",   
+                  new BMap.Size(14, 23), {      
+                   // 指定定位位置。     
+                   // 当标注显示在地图上时，其所指向的地理位置距离图标左上      
+                   // 角各偏移7像素和25像素。您可以看到在本例中该位置即是     
+                   // 图标中央下端的尖角位置。      
+                   anchor: new BMap.Size(7, 25),        
+                  });  
+               var marker = new BMap.Marker(new BMap.Point( position.coords.longitude,position.coords.latitude), {icon: myIcon});      
+               map.addOverlay(marker);
+               lines = data.lines
+               $("#way").html("")
+               for (l in lines){
+                    //alert(lines[l].lineName)
+                    $("#way").append('<a class="way" lineId="'+lines[l].lineId +'" href="#">'+lines[l].lineName+'</a><br/>')                    
+               }
+
+               $(".way").click(function(){
+                    map.clearOverlays();
+                    var marker = new BMap.Marker(new BMap.Point( position.coords.longitude,position.coords.latitude), {icon: myIcon});      
+                    map.addOverlay(marker);
+                    for (l in lines){
+                        if (lines[l].lineId == $(this).attr("lineId")){
+                            buses = lines[l].buses
+                            for (b in buses){
+                                //alert(buses[b].name)
+                                var marker = new BMap.Marker(new BMap.Point(buses[b]["lng"], buses[b]["lat"]));      
+                                map.addOverlay(marker);
+                            }
+                        }
+                    }
+               })
+               //for (d in data[""]){
+                   //var marker = new BMap.Marker(new BMap.Point(114.075626, 22.580552));      
+                   //map.addOverlay(marker);
+               //}
+            }
+        })   
+    }
+
+    })
+</script>  
