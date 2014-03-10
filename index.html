@@ -1,13 +1,15 @@
 <!DOCTYPE html>  
-<html>  
+<html manifest="static/gj.manifest">  
 <head>  
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no"">  
 <style type="text/css">  
 body, html,#l-map {width: 100%;height: 100%;overflow: hidden;hidden;margin:0;}  
-</style>  
-<script type="text/javascript" src="http://api.map.baidu.com/api?type=quick&ak=E8yAtC3LtBPTC3tpHPeAC41d&v=1.0"></script>
+</style>
+
+<script type="text/javascript" src="http://api.map.baidu.com/api?ak=E8yAtC3LtBPTC3tpHPeAC41d&v=1.5"></script>
+<script type="text/javascript" src="http://developer.baidu.com/map/jsdemo/demo/convertor.js"></script>
 <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
 <script src="http://libs.baidu.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
 <link href="http://libs.baidu.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
@@ -28,7 +30,7 @@ body, html,#l-map {width: 100%;height: 100%;overflow: hidden;hidden;margin:0;}
     </div>
     <input id="line" type="text" class="form-control"> 
     <span class="input-group-btn">
-        <button class="btn btn-primary" type="button">刷新</button>
+        <button id="refresh" class="btn btn-primary" type="button">刷新</button>
     </span>
 </div>
 <div id="way">
@@ -44,22 +46,24 @@ if (navigator.geolocation)
 
 function got_position(position){
     var map = new BMap.Map("l-map");
-    map.centerAndZoom(new BMap.Point( position.coords.longitude,position.coords.latitude), 14);
-    var myIcon = new BMap.Icon("http://api.map.baidu.com/mapCard/img/location.gif",   
-      new BMap.Size(14, 23), {      
-       // 指定定位位置。     
-       // 当标注显示在地图上时，其所指向的地理位置距离图标左上      
-       // 角各偏移7像素和25像素。您可以看到在本例中该位置即是     
-       // 图标中央下端的尖角位置。      
-       anchor: new BMap.Size(7, 25),        
-      });  
-    var marker = new BMap.Marker(new BMap.Point( position.coords.longitude,position.coords.latitude), {icon: myIcon});      
-    map.addOverlay(marker);
+    var gpsPoint = new BMap.Point( position.coords.longitude,position.coords.latitude ); 
+    BMap.Convertor.translate(gpsPoint,0,function( point ){
+        map.centerAndZoom(point, 14);
+        var myIcon = new BMap.Icon("http://api.map.baidu.com/mapCard/img/location.gif",   
+          new BMap.Size(14, 23), {      
+           // 指定定位位置。     
+           // 当标注显示在地图上时，其所指向的地理位置距离图标左上      
+           // 角各偏移7像素和25像素。您可以看到在本例中该位置即是     
+           // 图标中央下端的尖角位置。      
+           anchor: new BMap.Size(7, 25),        
+          });  
+        var marker = new BMap.Marker(point, {icon: myIcon});      
+        map.addOverlay(marker);
+    });
+    
 
 
-    $("#form").submit(function(e){
-        e.preventDefault();
-        
+    $("#refresh").click(function(e){
         function showPosition(position)
         {
            map.clearOverlays()
